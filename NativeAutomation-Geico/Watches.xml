@@ -1,0 +1,3 @@
+﻿<Properties>
+  <WatchEntry0 value="MobiElement(&quot;accessibilitylabel:=Settings&quot;).Getroproperty(&quot;width&quot;)" />
+</Properties>
