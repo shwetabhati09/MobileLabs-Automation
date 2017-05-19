@@ -1,17 +1,20 @@
 ﻿'######################################################################################
-'Objective: To demonstrate cross platform scripting for nativeautomation
 
+'Objective:		To demonstrate cross platform scripting for nativeautomation
+'Pre-requisite:	For iOS make sure the certificate used to sign the ipa is trusted by the device
+'				Upload and rename the iOS Geico app to "Geico" and Android app to "GEICO Mobile_Obfuscated"
+'				Provide path to CLI in the CLIPath variable, also enter HubAddress, UserName, Pwd, DeviceID. Rest can be left as default
 '######################################################################################
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.33"
+HubAddress = "10.4.5.135"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "iPhone_9_3"
+DeviceID = "iPhone 6s Plus"
 applicationname="deviceControl"
 orientation="Portrait"
-scale="25"
+scale="100"
 
 'Connect device
 SystemUtil.CloseProcessByName "MobileLabs.deviceViewer.exe"
@@ -32,29 +35,16 @@ Reporter.ReportEvent micDone, "ConnectToDevice", "Connect Parameters: " & connec
 SystemUtil.Run "MobileLabs.DeviceConnect.Cli.exe", connectParams,CLIPath
 WaitForProcess("MobileLabs.DeviceConnect.Cli.exe")
 
-'Close the iTunes signin dialog if it is present
-If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(30) Then
-	MobiDevice("iOS").MobiButton("Cancel").Click
-End If
+'Wait for the device to connect
+Window("deviceViewer").WaitProperty "height", micGreaterThan(300), 30000
 
-'Handle the iOS update dialog
-If MobiDevice("iOS").MobiElement("SoftwareUpdate").Exist(10) Then
-	If MobiDevice("iOS").MobiButton("Later").Exist(5) Then
-		MobiDevice("iOS").MobiButton("Later").Click
-	End If
-	Wait 2
-	If MobiDevice("iOS").MobiButton("RemindMeLater").Exist(5) Then
-		MobiDevice("iOS").MobiButton("RemindMeLater").Click
-	End If
-End If
-
-
-If MobiDevice("deviceControl").MobiElement("WelcometodeviceControl").Exist(20) Then
-	MobiDevice("deviceControl").MobiElement("WelcometodeviceControl").Highlight
-	Print "Device connected!"
-	MobiDevice("deviceControl").ButtonPress eHOME
+'Resize the viewer
+blnResult = FitViewerIntoDesktop
+If Not(blnResult) Then
+	MsgBox "Couldn't resize the viewer, please resize the scale to fit your desktop and continue!"
 Else
-	Print "Failed to connect to device!"
+	Print "Device connected and viewer successfully resized!"
+	Wait 2
 End If
 
 '#################################################
@@ -62,14 +52,42 @@ End If
 strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
 
 '#################################################
+
+'Close the iTunes signin dialog if it is present
+If strOS = "ios" Or strOS = "iphone os" Then
+	If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(30) Then
+		MobiDevice("iOS").MobiButton("Cancel").Click
+	End If
+	
+	'Handle the iOS update dialog
+	If MobiDevice("iOS").MobiElement("SoftwareUpdate").Exist(10) Then
+		If MobiDevice("iOS").MobiButton("Later").Exist(5) Then
+			MobiDevice("iOS").MobiButton("Later").Click
+		End If
+		Wait 2
+		If MobiDevice("iOS").MobiButton("RemindMeLater").Exist(5) Then
+			MobiDevice("iOS").MobiButton("RemindMeLater").Click
+		End If
+	End If
+End If
+
+If MobiDevice("deviceControl").MobiElement("WelcometodeviceControl").Exist(20) Then
+	MobiDevice("deviceControl").MobiElement("WelcometodeviceControl").Highlight
+	MobiDevice("deviceControl").ButtonPress eHOME
+Else
+	Print "Failed to connect to device!"
+End If
+
 'Install Geico app
 Select Case strOS
 	Case "iphone os"
 		appName = "Geico"
-		
+	Case "ios"
+		appName = "Geico"
 	Case "androidos"
 		appName = "GEICO Mobile_Obfuscated"
-		
+'	Case "android"
+'		appName = "GEICO Mobile_Obfuscated"
 	Case Else
 		MsgBox "Couldn't get device platform, exiting test!"
 		ExitTest
@@ -87,30 +105,41 @@ WaitForProcess("MobileLabs.DeviceConnect.Cli.exe")
 'Change WiFi
 openDeviceSettings
 strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
+If strOS = "iphone os" Then
+	strOS = "ios"
+ElseIf strOS = "androidos" Then
+	strOS = "android"
+End If
 Select Case strOS
-	Case "iphone os"
-		intAttempts = 0
-		Do While Not(MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2))
-			MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Click
-			Wait 2
-			If MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2) Then
-				Print "On Settings screen!"
-				Exit Do
-			End If
-			intAttempts = intAttempts + 1
-			If intAttempts > 10 Then
-				Print "Couldn't get to the Settings screen in 10 attempts!"
-				Exit Do
-			End If
-		Loop
+	Case "ios"
+'		intAttempts = 0
+'		Do While Not(MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2))
+'			If MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Exist(5) Then
+'				MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Click
+'			End If
+'			Wait 3
+'			If MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2) Then
+'				Print "On Settings screen!"
+'				Exit Do
+'			End If
+'			intAttempts = intAttempts + 1
+'			If intAttempts > 10 Then
+'				Print "Couldn't get to the Settings screen in 10 attempts!"
+'				Exit Do
+'			End If
+'		Loop
 	
+		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
 		MobiDevice("iOS").MobiElement("WiFi").Click
-		Wait 3
+		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", False, 5000
 		MobiDevice("iOS").MobiElement("MobileLabs").Click
 		Wait 3
 		If MobiDevice("iOS").MobiButton("WiFi").Exist(3) Then
 			MobiDevice("iOS").MobiButton("WiFi").Click
-			Wait 2
+			Wait 3
+		ElseIf MobiDevice("iOS").MobiButton("Cancel_WiFi").Exist(3) Then
+			MobiDevice("iOS").MobiButton("Cancel_WiFi").Click
+			Wait 3
 		End If
 		
 		MobiDevice("iOS").MobiElement("Other").Click
@@ -120,7 +149,7 @@ Select Case strOS
 		MobiDevice("iOS").ButtonPress eHOME
 		Wait 3
 		
-	Case "androidos"
+	Case "android"
 		intTries = 0
 		Do While Not(MobiDevice("deviceControl").MobiElement("WiFi").Exist(2))
 			MobiDevice("deviceControl").Swipe eUP, eMEDIUM, 30, 60
@@ -147,7 +176,12 @@ Select Case strOS
 			Wait 1
 		End If
 		
-		MobiDevice("deviceControl").MobiButton("CONNECT").Click
+		If MobiDevice("deviceControl").MobiButton("CONNECT").Exist(5) Then
+			MobiDevice("deviceControl").MobiButton("CONNECT").Click
+		ElseIf MobiDevice("deviceControl").MobiButton("CANCEL").Exist(5) Then
+			MobiDevice("deviceControl").MobiButton("CANCEL").Click
+		End If
+
 		MobiDevice("deviceControl").MobiElement("ObtainingIPaddress").WaitProperty "width",0,10000
 		MobiDevice("deviceControl").MobiElement("dCMacmini2").Click
 		Wait 2
@@ -157,9 +191,11 @@ Select Case strOS
 			Wait 1
 		End If
 		
-		MobiDevice("deviceControl").MobiButton("CONNECT").Click
-		MobiDevice("deviceControl").MobiElement("Connected").WaitProperty "width",micGreaterThan(0),10000
-		Wait 2
+		If MobiDevice("deviceControl").MobiButton("CONNECT").Exist(5) Then
+			MobiDevice("deviceControl").MobiButton("CONNECT").Click
+			MobiDevice("deviceControl").MobiElement("Connected").WaitProperty "width",micGreaterThan(0),10000
+		End If
+		
 		MobiDevice("deviceControl").ButtonPress eBACK
 		Wait 2
 		
@@ -173,7 +209,7 @@ End Select
 
 '#################################################
 'Force stop Geico app if it is running - Android only
-If strOS = "androidos" Then
+If strOS = "android" Then
 	openDeviceSettings
 	
 	intTries = 0
@@ -214,16 +250,54 @@ End If
 
 '#################################################
 'Launch App and browse through some screens
+strOS = "ios"
 Select Case strOS
-	Case "iphone os"
+	Case "ios"
+		'First verify the app
+		openDeviceSettings
+		
+		'Tap General
+		If Not(MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Exist(5)) Then
+			MobiDevice("deviceControl").Swipe eDOWN, eMEDIUM, 30, 50
+		End If
+		
+		MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Click
+
+		'Scroll to the bottom of General screen and click Device Management
+		MobiDevice("iOS").MobiElement("GeneralTitle").WaitProperty "visible", True, 5000
+
+		MobiDevice("iOS").MobiList("SettingsList").Scroll eBOTTOM
+		Wait 3
+		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
+		MobiDevice("iOS").MobiElement("DeviceManagement").Click
+		
+		'Select Cert and Trust it
+		If MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Exist(5) Then
+			MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Click
+			
+			If MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Exist(5) Then
+				MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Click
+				
+				If MobiDevice("iOS").MobiButton("Trust").Exist(5) Then
+					MobiDevice("iOS").MobiButton("Trust").Click
+					
+					'Goto Home
+					MobiDevice("iOS").ButtonPress eHOME
+					Wait 2
+				End If
+				
+			End If
+		End If
+	
 		'Open the search screen by swiping down on home screen
 		MobiDevice("deviceControl").ButtonPress eHOME
 		Wait 3
 		MobiDevice("deviceControl").Draw "down(50%,30%) move(50%,60%,duration=2s) up()"
-		Wait 3
+		MobiDevice("iOS").MobiEdit("Search").WaitProperty "visible", True, 50000
+		MobiDevice("iOS").MobiEdit("Search").Clear
 		If MobiDevice("iOS").MobiEdit("Search").Exist(5) Then
 			MobiDevice("iOS").MobiEdit("Search").Set "G4"
-			Wait 2
+			MobiDevice("iOS").MobiElement("G475776").WaitProperty "visible", True, 5000
 			MobiDevice("iOS").MobiElement("G475776").Click
 		Else
 			Print "Search screen not opened, exiting Test!"
@@ -231,17 +305,34 @@ Select Case strOS
 		End If
 		
 		If  MobiDevice("iOS").MobiElement("Notificationsmayincludealertss").Exist(10) Then
-			MobiDevice("iOS").MobiButton("OK").Click
+			If MobiDevice("iOS").MobiButton("OK").Exist(5) Then
+				MobiDevice("iOS").MobiButton("OK").Click
+			ElseIf MobiDevice("iOS").MobiButton("Allow").Exist(5) Then
+				MobiDevice("iOS").MobiButton("Allow").Click
+			End If
 			Wait 2
 		End If
 		
 		
-	Case "androidos"
+	Case "android"
 		MobiDevice("deviceControl").MobiElement("AppsIcon").Click
 		Wait 3
 		MobiDevice("deviceControl").MobiElement("GEICOMobile").Click
 		
-		If MobiDevice("deviceControl").MobiButton("NOCOMMENT").Exist(5) Then
+		If MobiDevice("GEICO Mobile").MobiButton("ALLOW").Exist(5) Then
+			MobiDevice("GEICO Mobile").MobiButton("ALLOW").Click
+			intAttempts = 0
+			Do While MobiDevice("GEICO Mobile").MobiButton("ALLOW").Exist(5)
+				MobiDevice("GEICO Mobile").MobiButton("ALLOW").Click
+				Wait 2
+				If intAttempts > 5 Then
+					Exit Do
+				End If
+				intAttempts = intAttempts + 1
+			Loop
+		ElseIf MobiDevice("GEICO Mobile").MobiElement("Element").MobiElement("RequestError").Exist(5) Then
+				MobiDevice("deviceControl").MobiButton("OK").Click
+		ElseIf MobiDevice("deviceControl").MobiButton("NOCOMMENT").Exist(5) Then
 			MobiDevice("deviceControl").MobiButton("NOCOMMENT").Click
 		End If
 End Select
@@ -288,7 +379,7 @@ Select Case strCase
 			
 			'Go back to login screen
 			MobiDevice("GEICO Mobile").ButtonPress eBACK
-			Wait 2
+			MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("UserIDEmailPolicyNumber").WaitProperty "visible", True, 10000
 			
 			'Go to Signup screen
 			MobiDevice("GEICO Mobile").MobiButton("SIGNUPFORANACCOUNT").Click
@@ -307,6 +398,10 @@ Select Case strCase
 			
 			MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("Day").Set "11"
 			MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("Year").Set "2011"
+			Wait 2
+			
+			'Enter zip
+			MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Set "30091"
 			
 			'Close app by pressing Home button
 			MobiDevice("GEICO Mobile").ButtonPress eHOME
@@ -319,15 +414,15 @@ Select Case strCase
 '	Case "nexus 5x"
 	Case "case2"
 		Select Case strOS
-			Case "iphone os"
+			Case "ios"
 				Set objImage = MobiDevice("GEICO Mobile").MobiImage("GeicoTitle_iOS")
-				
+				Wait 2
 				If MobiDevice("GEICO Mobile").MobiElement("Howwasyourexperience").Exist(10) Then
 					MobiDevice("GEICO Mobile").MobiButton("Nocomment").Click
 					Wait 2	
 				End If
 				
-			Case "androidos"
+			Case "android"
 				Set objImage = MobiDevice("GEICO Mobile").MobiImage("GeicoTitle")
 		End Select
 		
@@ -341,9 +436,9 @@ Select Case strCase
 			Wait 5
 			
 			Select Case strOS
-				Case "iphone os"
+				Case "ios"
 					Set objCarIcon = MobiDevice("GEICO Mobile").MobiImage("CarIcon_iOS")
-				Case "androidos"
+				Case "android"
 					Set objCarIcon = MobiDevice("GEICO Mobile").MobiElement("Element").MobiImage("CarIcon")
 			End Select
 			
@@ -359,18 +454,18 @@ Select Case strCase
 			MobiDevice("GEICO Mobile").MobiButton("SIGNUPFORANACCOUNT").Click
 			
 			Select Case strOS
-			Case "iphone os"
+			Case "ios"
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("PolicyNum").Set "007007"
 				Wait 2
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("DOB_iOS").Click
 				Wait 2
-				MobiDevice("GEICO Mobile").MobiDatetimePicker("DatetimePicker").Select "1980-01-22"
+				MobiDevice("GEICO Mobile").MobiDatetimePicker("DatetimePicker").Select "1989-01-22"
 				Wait 2
 				MobiDevice("GEICO Mobile").MobiButton("Done").Click
 				Wait 2
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("Zip_iOS").Set "30091"
 				
-			Case "androidos"
+			Case "android"
 				If MobiDevice("GEICO Mobile").MobiElement("Element").MobiElement("RequestError").Exist(3) Then
 					MobiDevice("deviceControl").MobiButton("OK").Click
 				End If
@@ -400,7 +495,8 @@ Select Case strCase
 		End If
 		
 	Case Else
-		Print MobiDevice("deviceControl").GetROProperty("devicetype")
+		Print "Geico app did not launch!"
+		Reporter.ReportEvent micFail, "App launch", "Geico app did not launch!"
 	
 End Select
 
@@ -408,11 +504,13 @@ End Select
 MobiDevice("deviceControl").ButtonPress eHOME
 
 Select Case strOS
-	Case "iphone os"
+	Case "ios"
 		Set objHomeElement = MobiDevice("deviceControl").MobiElement("iOSSettingsIcon")
-	Case "androidos"
+	Case "android"
 		Set objHomeElement = MobiDevice("deviceControl").MobiElement("SayOkGoogle")
 End Select
+
+Wait 2
 
 If objHomeElement.Exist(5) Then
 	Print "Home screen displayed!"
@@ -490,9 +588,14 @@ End Sub
 
 Sub openDeviceSettings
 	strPlatform = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
+	If strPlatform = "iphone os" Then
+		strPlatform = "ios"
+	ElseIf strPlatform = "androidos" Then
+		strPlatform = "android"
+	End If
 
 	Select Case strPlatform
-		Case "iphone os"
+		Case "ios"
 '			Set objSettingsIcon = MobiElement("accessibilitylabel:=Settings","nativebaseclass:=UIView")
 			Set objSettingsIcon = MobiDevice("deviceControl").MobiElement("iOSSettingsIcon")
 
@@ -537,13 +640,41 @@ Sub openDeviceSettings
 				MsgBox "Settings not found, please check the device screen!"
 			End If
 			
-		Case "androidos"
+			intAttempts = 0
+			Do While Not(MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2))
+				If MobiDevice("iOS").MobiButton("Back").Exist(5) Then
+					MobiDevice("iOS").MobiButton("Back").Click
+					'MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Click
+				End If
+				Wait 3
+				If MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2) Then
+					Print "On Settings screen!"
+					Exit Do
+				End If
+				intAttempts = intAttempts + 1
+				If intAttempts > 10 Then
+					Print "Couldn't get to the Settings screen in 10 attempts!"
+					Exit Do
+				End If
+			Loop
+			
+			'Scroll to the top
+			MobiDevice("iOS").MobiList("SettingsList").Scroll eTOP
+			Wait 2
+			
+		Case "android"
 			MobiDevice("deviceControl").ButtonPress eHOME
 			Wait 3
-			MobiDevice("deviceControl").MobiElement("SayOkGoogle").Click
+			
+			If MobiDevice("deviceControl").MobiElement("SayOkGoogle").Exist(5) Then
+				MobiDevice("deviceControl").MobiElement("SayOkGoogle").Click
+			ElseIf MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Exist(5) Then
+				MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Click -10,10
+			End If
+			
 			Wait 4
 			MobiDevice("deviceControl").Type "settings"
-			Wait 5
+			MobiDevice("deviceControl").MobiElement("Settings").WaitProperty "visible", True, 10000
 			MobiDevice("deviceControl").MobiElement("Settings").Click
 			Wait 2
 		Case Else
@@ -557,11 +688,16 @@ End Sub
 '#################################################
 Sub goToHomeScreen
 	strPlatform = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
+	If strPlatform = "iphone os" Then
+		strPlatform = "ios"
+	ElseIf strPlatform = "androidos" Then
+		strPlatform = "android"
+	End If
 	
 	Select Case strPlatform
-		Case "iphone os"
+		Case "ios"
 			Set objBack = MobiDevice("GEICO Mobile").MobiButton("Back_iOS")
-		Case "androidos"
+		Case "android"
 			Set objBack = MobiDevice("GEICO Mobile").MobiImage("BackButton")
 	End Select
 	
@@ -581,55 +717,66 @@ End Sub
 
 '#################################################
 
+Function FitViewerIntoDesktop
+	
+	'Wait for the viewer to connect
+	If MobiDevice("name:=*").Exist(60) then
+	
+		FitViewerIntoDesktop = True
+		
+		If Window("regexpwndtitle:=.*deviceViewer","height:=228").Exist(2) Then
+			FitViewerIntoDesktop = False
+			Exit Function
+		End If
+		
+		'Update the viewer scale if MobiDevice height is more than the screen height
+		intScreenHeight = Window("object class:=Shell_TrayWnd").GetROProperty("height") + Window("object class:=Shell_TrayWnd").GetROProperty("y")
+		intWindowHeight = Window("title:=.*deviceViewer").GetROProperty("height")
+		
+		'Move the deviceViewer Window near the top left of the screen
+		Window("title:=.*deviceViewer").Move 15,10
+		Wait 5
+		
+		intStartTime = Now()
+		intScaleDown = 25
+		
+		Do While intWindowHeight > intScreenHeight
+		    intScale = CInt(MobiDevice("name:=*").GetROProperty("viewerscale"))
+		    intSetScale = Abs(CInt(intScale - intScaleDown))
+		    'Scale down to 25% at most
+		    If intSetScale >= 25 Then
+		    	MobiDevice("name:=*").Scale intSetScale
+		    ElseIf (intScale - 25) < 0 Then
+		    	Print "The current viewer scale is: " & intScale
+		    	Exit Do
+		    End If
+		    
+		    'Sync for the scale down
+		    Window("title:=.*deviceViewer").WaitProperty "height", micLessThan(intWindowHeight), 5000
+		    intWindowHeight = Window("title:=.*deviceViewer").GetROProperty("height")
+		    
+		    'Exit if viewer height is lessthanOrequalTo 600 OR 2 minutes have passed attempting to scale down
+		    'Keeping 600 as the minimum height as this would fit into most of the monitors
+		    If intWindowHeight <= 600 Then
+		        Exit Do
+		    ElseIf Minute(Now() - intStartTime) >= 2 Then
+		    	Print "[WARNING] Failed to scale down the device. The current viewer scale is: " & intScale
+		    	Exit Do
+		    End If
+		    intScaleDown = intScaleDown-5
+		    If intScaleDown = 0 Then
+		    	intScaleDown = 5
+		    End If
+		Loop
+		
+	Else
+		FitViewerIntoDesktop = False
+	End if
 
+End Function
 
-MobiDevice("CarMax QA").MobiEdit("FirstName").Set "Tester"
-Wait 2
-MobiDevice("CarMax QA").MobiEdit("LastName").Set "CarMax"
-Wait 2
-MobiDevice("CarMax QA").MobiEdit("ZipCode").Set "30901"
-Wait 2
-MobiDevice("CarMax QA").MobiEdit("Email").Set "test@dc.com"
-Wait 2
-MobiDevice("CarMax QA").MobiEdit("Password").Set "testing123#$"
-Wait 2
-MobiDevice("CarMax QA").MobiCheckbox("ShowPassword").Set eCHECKED
-Wait 2
-MobiDevice("CarMax QA").MobiCheckbox("ShowPassword").Set eUNCHECKED
-Wait 2
+'#################################################
 
-MobiDevice("CarMax QA").MobiButton("MakeModel").Click
-Wait 3
-MobiDevice("CarMax QA").MobiDropdown("FindStoreByState").Select "Georgia"
-Wait 3
-MobiDevice("CarMax QA").MobiList("List").MobiElement("Norcross").Click
-Wait 3
-MobiDevice("CarMax QA").MobiElement("Audi").Click
-Wait 5
-MobiDevice("CarMax QA").MobiElement("Q5").Click
-Wait 5
-MobiDevice("CarMax QA").MobiElement("_30998").Click
-Wait 5
-MobiDevice("CarMax QA").MobiElement("_1of18").Click
-Wait 4
-MobiDevice("CarMax QA").MobiImage("CloseX").Click
-Wait 4
-MobiDevice("CarMax QA").MobiImage("Back").Click
-Wait 4
-MobiDevice("CarMax QA").MobiImage("Menu").Click
-Wait 4
-MobiDevice("CarMax QA").MobiList("List").MobiElement("Calculators").Click
-Wait 4
-MobiDevice("CarMax QA").MobiElement("Financing").Click
-Wait 4
-MobiDevice("CarMax QA").MobiWebView("WebView").Highlight
-
-
-
-
-MobiDevice("CarMax QA").MobiEdit("FirstName").Set "Tester12"
-Wait 2
-MobiDevice("CarMax QA").MobiEdit("LastName").Set "CarMax67()"
 
 
 
