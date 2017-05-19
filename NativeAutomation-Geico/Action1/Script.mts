@@ -11,7 +11,7 @@ CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
 HubAddress = "10.4.5.135"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "iPhone 6s Plus"
+DeviceID = "Device3"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -112,23 +112,6 @@ ElseIf strOS = "androidos" Then
 End If
 Select Case strOS
 	Case "ios"
-'		intAttempts = 0
-'		Do While Not(MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2))
-'			If MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Exist(5) Then
-'				MobiButton("accessibilitylabel:=Back","nativebaseclass:=UINavigationBarBackIndicatorView").Click
-'			End If
-'			Wait 3
-'			If MobiDevice("iOS").MobiElement("SettingsTitle").Exist(2) Then
-'				Print "On Settings screen!"
-'				Exit Do
-'			End If
-'			intAttempts = intAttempts + 1
-'			If intAttempts > 10 Then
-'				Print "Couldn't get to the Settings screen in 10 attempts!"
-'				Exit Do
-'			End If
-'		Loop
-	
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
 		MobiDevice("iOS").MobiElement("WiFi").Click
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", False, 5000
@@ -178,22 +161,22 @@ Select Case strOS
 		
 		If MobiDevice("deviceControl").MobiButton("CONNECT").Exist(5) Then
 			MobiDevice("deviceControl").MobiButton("CONNECT").Click
+			MobiDevice("deviceControl").MobiElement("ObtainingIPaddress").WaitProperty "width",0,10000
 		ElseIf MobiDevice("deviceControl").MobiButton("CANCEL").Exist(5) Then
 			MobiDevice("deviceControl").MobiButton("CANCEL").Click
 		End If
 
-		MobiDevice("deviceControl").MobiElement("ObtainingIPaddress").WaitProperty "width",0,10000
 		MobiDevice("deviceControl").MobiElement("dCMacmini2").Click
 		Wait 2
 		
 		If MobiDevice("deviceControl").MobiCheckbox("Showpassword").Exist(3) Then
 			MobiDevice("deviceControl").MobiEdit("Password").Set "123456789"
+			If MobiDevice("deviceControl").MobiButton("CONNECT").GetROProperty("enabled") = True Then
+				MobiDevice("deviceControl").MobiButton("CONNECT").Click
+			End If
 			Wait 1
-		End If
-		
-		If MobiDevice("deviceControl").MobiButton("CONNECT").Exist(5) Then
-			MobiDevice("deviceControl").MobiButton("CONNECT").Click
-			MobiDevice("deviceControl").MobiElement("Connected").WaitProperty "width",micGreaterThan(0),10000
+		ElseIf MobiDevice("deviceControl").MobiButton("CANCEL").Exist(5) Then
+			MobiDevice("deviceControl").MobiButton("CANCEL").Click
 		End If
 		
 		MobiDevice("deviceControl").ButtonPress eBACK
@@ -250,7 +233,6 @@ End If
 
 '#################################################
 'Launch App and browse through some screens
-strOS = "ios"
 Select Case strOS
 	Case "ios"
 		'First verify the app
@@ -507,7 +489,12 @@ Select Case strOS
 	Case "ios"
 		Set objHomeElement = MobiDevice("deviceControl").MobiElement("iOSSettingsIcon")
 	Case "android"
-		Set objHomeElement = MobiDevice("deviceControl").MobiElement("SayOkGoogle")
+		If MobiDevice("deviceControl").MobiElement("SayOkGoogle").Exist(3) Then
+			Set objHomeElement = MobiDevice("deviceControl").MobiElement("SayOkGoogle")
+		ElseIf MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Exist(3) Then
+			Set objHomeElement = MobiDevice("deviceControl").MobiImage("GoogleMikeIcon")
+		End If
+		
 End Select
 
 Wait 2
@@ -562,8 +549,14 @@ Sub selectMonth
 		strTopMonth = MobiDevice("GEICO Mobile").MobiElement("TopMonth").GetROProperty("text")
 		intTopMonth = Month(DateValue("22-" & strTopMonth & "-2000"))
 		
-		MobiDevice("GEICO Mobile").MobiElement("BottomMonth").Highlight
-		strBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth").GetROProperty("text")
+		If MobiDevice("GEICO Mobile").MobiElement("BottomMonth").Exist(2) Then
+			Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth")
+		ElseIf MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2").Exist(2) Then
+			Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2")
+		End If
+		
+		objBottomMonth.Highlight
+		strBottomMonth = objBottomMonth.GetROProperty("text")
 		intBottomMonth = Month(DateValue("22-" & strBottomMonth & "-2000"))
 		
 		If intMonthToSelect <= intBottomMonth AND intMonthToSelect >= intTopMonth Then
