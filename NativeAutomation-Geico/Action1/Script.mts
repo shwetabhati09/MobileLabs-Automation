@@ -8,7 +8,7 @@
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.4.5.135"
+HubAddress = "10.10.0.33"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
 DeviceID = "Device3"
