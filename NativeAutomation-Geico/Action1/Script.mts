@@ -8,10 +8,10 @@
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.33"
+HubAddress = "10.10.0.32"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "Device3"
+DeviceID = "iPhone_6"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -57,6 +57,7 @@ strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
 If strOS = "ios" Or strOS = "iphone os" Then
 	If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(30) Then
 		MobiDevice("iOS").MobiButton("Cancel").Click
+		Print "iTunes popup closed!"
 	End If
 	
 	'Handle the iOS update dialog
@@ -68,6 +69,7 @@ If strOS = "ios" Or strOS = "iphone os" Then
 		If MobiDevice("iOS").MobiButton("RemindMeLater").Exist(5) Then
 			MobiDevice("iOS").MobiButton("RemindMeLater").Click
 		End If
+		Print "iOS update popup closed!"
 	End If
 End If
 
@@ -93,6 +95,8 @@ Select Case strOS
 		ExitTest
 End Select
 
+Print "Installing app: " & appName
+
 connectParams = HubAddress & " " & UserName & " " & Pwd _
 & " -device " & DeviceID _
 & " -nativeautomation " _
@@ -102,7 +106,7 @@ SystemUtil.Run "MobileLabs.DeviceConnect.Cli.exe", connectParams,CLIPath
 WaitForProcess("MobileLabs.DeviceConnect.Cli.exe")
 
 '#################################################
-'Change WiFi
+'WiFi
 openDeviceSettings
 strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
 If strOS = "iphone os" Then
@@ -110,6 +114,8 @@ If strOS = "iphone os" Then
 ElseIf strOS = "androidos" Then
 	strOS = "android"
 End If
+
+Print "WiFi screen!"
 Select Case strOS
 	Case "ios"
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
@@ -193,6 +199,7 @@ End Select
 '#################################################
 'Force stop Geico app if it is running - Android only
 If strOS = "android" Then
+	Print "Force stopping Geico app!"
 	openDeviceSettings
 	
 	intTries = 0
@@ -235,6 +242,8 @@ End If
 'Launch App and browse through some screens
 Select Case strOS
 	Case "ios"
+		Print "Checking if app is verified or not!"
+	
 		'First verify the app
 		openDeviceSettings
 		
@@ -248,8 +257,13 @@ Select Case strOS
 		'Scroll to the bottom of General screen and click Device Management
 		MobiDevice("iOS").MobiElement("GeneralTitle").WaitProperty "visible", True, 5000
 
-		MobiDevice("iOS").MobiList("SettingsList").Scroll eBOTTOM
+		If LCase(MobiDevice("iOS").GetROProperty("devicetype")) = "ipad" Then
+			MobiDevice("iOS").MobiList("SettingsListRight").Scroll eBOTTOM
+		Else
+			MobiDevice("iOS").MobiList("SettingsList").Scroll eBOTTOM
+		End If	
 		Wait 3
+		
 		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
 		MobiDevice("iOS").MobiElement("DeviceManagement").Click
 		
@@ -272,6 +286,7 @@ Select Case strOS
 		End If
 	
 		'Open the search screen by swiping down on home screen
+		Print "Launching Geico app!"
 		MobiDevice("deviceControl").ButtonPress eHOME
 		Wait 3
 		MobiDevice("deviceControl").Draw "down(50%,30%) move(50%,60%,duration=2s) up()"
@@ -297,6 +312,7 @@ Select Case strOS
 		
 		
 	Case "android"
+		Print "Launching Geico app!"
 		MobiDevice("deviceControl").MobiElement("AppsIcon").Click
 		Wait 3
 		MobiDevice("deviceControl").MobiElement("GEICOMobile").Click
@@ -395,6 +411,7 @@ Select Case strCase
 		End If
 '	Case "nexus 5x"
 	Case "case2"
+		Print "Geico app launched successfully!"
 		Select Case strOS
 			Case "ios"
 				Set objImage = MobiDevice("GEICO Mobile").MobiImage("GeicoTitle_iOS")
@@ -437,7 +454,7 @@ Select Case strCase
 			
 			Select Case strOS
 			Case "ios"
-				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("PolicyNum").Set "007007"
+				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("PolicyNum_iOS").Set "007007"
 				Wait 2
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("DOB_iOS").Click
 				Wait 2
