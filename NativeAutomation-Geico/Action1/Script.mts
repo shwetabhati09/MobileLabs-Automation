@@ -6,12 +6,15 @@
 '				Provide path to CLI in the CLIPath variable, also enter HubAddress, UserName, Pwd, DeviceID. Rest can be left as default
 '######################################################################################
 
+RegisterUserFunc "MobiElement", "Click", "ClickHighlight"
+RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
+
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
 HubAddress = "10.10.0.32"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "iPhone_6"
+DeviceID = "LG_V20"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -55,7 +58,7 @@ strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
 
 'Close the iTunes signin dialog if it is present
 If strOS = "ios" Or strOS = "iphone os" Then
-	If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(30) Then
+	If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(20) Then
 		MobiDevice("iOS").MobiButton("Cancel").Click
 		Print "iTunes popup closed!"
 	End If
@@ -105,6 +108,8 @@ Reporter.ReportEvent micDone, "InstallApp", "Connect Parameters: " & connectPara
 SystemUtil.Run "MobileLabs.DeviceConnect.Cli.exe", connectParams,CLIPath
 WaitForProcess("MobileLabs.DeviceConnect.Cli.exe")
 
+Print "App installed: " & appName
+
 '#################################################
 'WiFi
 openDeviceSettings
@@ -115,7 +120,7 @@ ElseIf strOS = "androidos" Then
 	strOS = "android"
 End If
 
-Print "WiFi screen!"
+Print "WiFi screen steps!"
 Select Case strOS
 	Case "ios"
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
@@ -139,22 +144,30 @@ Select Case strOS
 		Wait 3
 		
 	Case "android"
+		Set objWifi = MobiDevice("deviceControl").MobiElement("WiFi")
 		intTries = 0
-		Do While Not(MobiDevice("deviceControl").MobiElement("WiFi").Exist(2))
+		Do While Not(objWifi.Exist(2))
 			MobiDevice("deviceControl").Swipe eUP, eMEDIUM, 30, 60
 			Wait 2
 			intTries = intTries + 1
+			If MobiDevice("deviceControl").MobiElement("Wi-Fi").Exist(2) Then
+				Set objWifi = MobiDevice("deviceControl").MobiElement("Wi-Fi")
+			End If
 			If intTries > 5 Then
 				Exit Do
 			End If
 		Loop
 		
-		If MobiDevice("deviceControl").MobiElement("WiFi").Exist(1) Then
-			MobiDevice("deviceControl").MobiElement("WiFi").Click
+		If objWifi.Exist(1) Then
+			objWifi.Click
 			Wait 3
 		Else
 			Print "Can't find WiFi in Settings, something went wrong, exiting test. Please check the device!"
 			ExitTest
+		End If
+		
+		If MobiDevice("deviceControl").MobiElement("WiFi_Tutorial").Exist(3) Then
+			MobiDevice("deviceControl").MobiButton("CLOSE").Click
 		End If
 		
 		MobiDevice("deviceControl").MobiElement("MobileLabs").Click
@@ -172,8 +185,10 @@ Select Case strOS
 			MobiDevice("deviceControl").MobiButton("CANCEL").Click
 		End If
 
-		MobiDevice("deviceControl").MobiElement("dCMacmini2").Click
-		Wait 2
+		If MobiDevice("deviceControl").MobiElement("dCMacmini2").Exist(3) Then
+			MobiDevice("deviceControl").MobiElement("dCMacmini2").Click
+			Wait 2
+		End If
 		
 		If MobiDevice("deviceControl").MobiCheckbox("Showpassword").Exist(3) Then
 			MobiDevice("deviceControl").MobiEdit("Password").Set "123456789"
@@ -228,10 +243,11 @@ If strOS = "android" Then
 		MobiDevice("deviceControl").MobiButton("FORCESTOP").Click
 		Wait 2
 		MobiDevice("deviceControl").MobiButton("OK").Click
-	End If
-	
-	If MobiDevice("deviceControl").MobiButton("FORCESTOP").GetROProperty("enabled") = False Then	
-		Print "Geico app stopped successfully!"
+		If MobiDevice("deviceControl").MobiButton("FORCESTOP").GetROProperty("enabled") = False Then	
+			Print "Geico app stopped successfully!"
+		End If
+	Else
+		Print "Geico app not running!"
 	End If
 	
 	MobiDevice("deviceControl").ButtonPress eHOME
@@ -264,7 +280,7 @@ Select Case strOS
 		End If	
 		Wait 3
 		
-		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
+'		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
 		MobiDevice("iOS").MobiElement("DeviceManagement").Click
 		
 		'Select Cert and Trust it
@@ -276,6 +292,7 @@ Select Case strOS
 				
 				If MobiDevice("iOS").MobiButton("Trust").Exist(5) Then
 					MobiDevice("iOS").MobiButton("Trust").Click
+					Print "Certificate trusted!"
 					
 					'Goto Home
 					MobiDevice("iOS").ButtonPress eHOME
@@ -283,6 +300,7 @@ Select Case strOS
 				End If
 				
 			End If
+			Print "App verified!"
 		End If
 	
 		'Open the search screen by swiping down on home screen
@@ -313,8 +331,22 @@ Select Case strOS
 		
 	Case "android"
 		Print "Launching Geico app!"
-		MobiDevice("deviceControl").MobiElement("AppsIcon").Click
-		Wait 3
+		MobiDevice("deviceControl").ButtonPress eHOME
+'		MobiDevice("deviceControl").MobiElement("AppsIcon").Click
+'		Wait 3
+		If MobiDevice("deviceControl").MobiElement("SayOkGoogle").Exist(5) Then
+			MobiDevice("deviceControl").MobiElement("SayOkGoogle").Click
+		ElseIf MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Exist(5) Then
+			MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Click -10,10
+		End If
+			
+		If MobiDevice("deviceControl").MobiButton("SKIP").Exist(5) Then
+				MobiDevice("deviceControl").MobiButton("SKIP").Click
+		End If
+		
+		MobiDevice("deviceControl").Type "Geico"
+		MobiDevice("deviceControl").MobiElement("GEICOMobile").WaitProperty "visible", True, 10000
+		
 		MobiDevice("deviceControl").MobiElement("GEICOMobile").Click
 		
 		If MobiDevice("GEICO Mobile").MobiButton("ALLOW").Exist(5) Then
@@ -682,6 +714,10 @@ Sub openDeviceSettings
 				MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Click -10,10
 			End If
 			
+			If MobiDevice("deviceControl").MobiButton("SKIP").Exist(5) Then
+				MobiDevice("deviceControl").MobiButton("SKIP").Click
+			End If
+			
 			Wait 4
 			MobiDevice("deviceControl").Type "settings"
 			MobiDevice("deviceControl").MobiElement("Settings").WaitProperty "visible", True, 10000
@@ -785,12 +821,18 @@ Function FitViewerIntoDesktop
 
 End Function
 
+Function ClickHighlight(objTest)
+	objTest.Highlight
+	x = CInt((objTest.GetROProperty("x") + (objTest.GetROProperty("x") + objTest.GetROProperty("width")))/2)
+	y = CInt((objTest.GetROProperty("y") + (objTest.GetROProperty("y") + objTest.GetROProperty("height")))/2)
+	MobiDevice("deviceControl").Draw "down(" & x & "," & y & ") up()"
+End Function
+
 '#################################################
 
 
 
 
 '#################################################
-
 
 
