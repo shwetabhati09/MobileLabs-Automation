@@ -11,10 +11,10 @@ RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.32"
+HubAddress = "10.10.0.33"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "LG_V20"
+DeviceID = "Device3"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -236,13 +236,19 @@ If strOS = "android" Then
 	
 	Wait 3
 	MobiDevice("deviceControl").Type "geico"
-	Wait 3
+	Wait 4
 	MobiDevice("deviceControl").MobiList("AppList").MobiElement("GEICOMobile").Click
 	
 	If MobiDevice("deviceControl").MobiButton("FORCESTOP").GetROProperty("enabled") = True Then	
 		MobiDevice("deviceControl").MobiButton("FORCESTOP").Click
 		Wait 2
-		MobiDevice("deviceControl").MobiButton("OK").Click
+		If MobiDevice("deviceControl").MobiButton("OK").Exist(3) Then
+			MobiDevice("deviceControl").MobiButton("OK").Click
+		ElseIf MobiDevice("deviceControl").MobiButton("FORCESTOP").Exist(2) Then
+			MobiDevice("deviceControl").MobiButton("FORCESTOP").Click
+		End If
+		Wait 2
+		
 		If MobiDevice("deviceControl").MobiButton("FORCESTOP").GetROProperty("enabled") = False Then	
 			Print "Geico app stopped successfully!"
 		End If
@@ -366,8 +372,6 @@ Select Case strOS
 			MobiDevice("deviceControl").MobiButton("NOCOMMENT").Click
 		End If
 End Select
-
-
 
 strCase = ""
 If MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("UserIDEmailPolicyNumber").Exist(10) Then
@@ -512,7 +516,12 @@ Select Case strCase
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("Year").Set "2011"
 				Wait 2
 				
-				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Set "30091"
+				If Not(MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Exist(2)) Then
+					MobiDevice("GEICO Mobile").Draw "down(50%,40%) move(50%,20%) up()"
+					Wait 1
+					MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Set "30091"
+				End If
+				
 			End Select
 			
 			
@@ -598,10 +607,16 @@ Sub selectMonth
 		strTopMonth = MobiDevice("GEICO Mobile").MobiElement("TopMonth").GetROProperty("text")
 		intTopMonth = Month(DateValue("22-" & strTopMonth & "-2000"))
 		
-		If MobiDevice("GEICO Mobile").MobiElement("BottomMonth").Exist(2) Then
-			Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth")
-		ElseIf MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2").Exist(2) Then
-			Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2")
+		If MobiDevice("GEICO Mobile").MobiElement("BottomMonth_3").Exist(2) Then
+			Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth_3")
+		Else
+			If MobiDevice("GEICO Mobile").MobiElement("BottomMonth").Exist(2) Then
+				Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth")
+			Else
+				If MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2").Exist(2) Then
+					Set objBottomMonth = MobiDevice("GEICO Mobile").MobiElement("BottomMonth_2")
+				End If
+			End If
 		End If
 		
 		objBottomMonth.Highlight
@@ -714,7 +729,9 @@ Sub openDeviceSettings
 				MobiDevice("deviceControl").MobiImage("GoogleMikeIcon").Click -10,10
 			End If
 			
-			If MobiDevice("deviceControl").MobiButton("SKIP").Exist(5) Then
+			If MobiDevice("deviceControl").MobiButton("NOTHANKS").Exist(5) Then
+				MobiDevice("deviceControl").MobiButton("NOTHANKS").Click
+			ElseIf MobiDevice("deviceControl").MobiButton("SKIP").Exist(5) Then
 				MobiDevice("deviceControl").MobiButton("SKIP").Click
 			End If
 			
@@ -829,7 +846,6 @@ Function ClickHighlight(objTest)
 End Function
 
 '#################################################
-
 
 
 
