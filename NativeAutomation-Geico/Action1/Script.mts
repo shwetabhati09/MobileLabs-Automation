@@ -11,10 +11,10 @@ RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.33"
+HubAddress = "10.10.0.32"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "Device3"
+DeviceID = "iPhone6"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -58,6 +58,12 @@ strOS = LCase(MobiDevice("deviceControl").GetROProperty("platform"))
 
 'Close the iTunes signin dialog if it is present
 If strOS = "ios" Or strOS = "iphone os" Then
+	'Handle no sim card installed popup
+	If MobiDevice("iOS").MobiElement("NoSIMCardInstalled").Exist(10) Then
+		MobiDevice("iOS").MobiButton("OK").Click
+	End If
+
+	'Handle iTunes popup
 	If MobiDevice("iOS").MobiElement("SignIntoiTunesStore").Exist(20) Then
 		MobiDevice("iOS").MobiButton("Cancel").Click
 		Print "iTunes popup closed!"
@@ -125,7 +131,7 @@ Select Case strOS
 	Case "ios"
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
 		MobiDevice("iOS").MobiElement("WiFi").Click
-		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", False, 5000
+		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "width", 0, 5000
 		MobiDevice("iOS").MobiElement("MobileLabs").Click
 		Wait 3
 		If MobiDevice("iOS").MobiButton("WiFi").Exist(3) Then
