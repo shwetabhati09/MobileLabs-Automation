@@ -1,9 +1,11 @@
 ﻿'######################################################################################
 
 'Objective:		To demonstrate cross platform scripting for nativeautomation
-'Pre-requisite:	For iOS make sure the certificate used to sign the ipa is trusted by the device
+'Pre-requisite:	For iOS make sure the certificate used to sign the ipa is trusted by the device. The script attempts to Trust the certificate
+'				from "Government Employees Insurance Company"
 '				Upload and rename the iOS Geico app to "Geico" and Android app to "GEICO Mobile_Obfuscated"
-'				Provide path to CLI in the CLIPath variable, also enter HubAddress, UserName, Pwd, DeviceID. Rest can be left as default
+'				Provide path to CLI in the CLIPath variable, also enter HubAddress/dC Server IP, UserName, Pwd, DeviceID/DeviceName.
+'				Rest can be left as default
 '######################################################################################
 
 RegisterUserFunc "MobiElement", "Click", "ClickHighlight"
@@ -11,10 +13,10 @@ RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.32"
+HubAddress = "10.10.0.33"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "iPhone6"
+DeviceID = "Device4"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -47,7 +49,7 @@ If Not(blnResult) Then
 	MsgBox "Couldn't resize the viewer, please resize the scale to fit your desktop and continue!"
 Else
 	Print "Device connected and viewer successfully resized!"
-	Wait 2
+	Wait 5
 End If
 
 '#################################################
@@ -235,6 +237,11 @@ If strOS = "android" Then
 	
 	If MobiDevice("deviceControl").MobiElement("Apps").Exist(1) Then
 		MobiDevice("deviceControl").MobiElement("Apps").Click
+		
+		'For Samsung models
+		If MobiDevice("deviceControl").MobiElement("Appmanager").Exist(5) Then
+			MobiDevice("deviceControl").MobiElement("Appmanager").Click
+		End If
 	Else
 		Print "Can't find Apps in Settings, something went wrong, exiting test. Please check the device!"
 		ExitTest
@@ -340,6 +347,14 @@ Select Case strOS
 			Wait 2
 		End If
 		
+		startTime = Timer
+		Do While MobiDevice("iOS").MobiElement("RetrievingYourInformation").Exist(1)
+			endTime = Timer
+			If endTime - startTime > 120 Then
+				Print "Took more than 2 minutes to retrieve information, please check the network on the device. Exiting test!"
+				ExitTest
+			End If
+		Loop
 		
 	Case "android"
 		Print "Launching Geico app!"
@@ -811,6 +826,12 @@ Function FitViewerIntoDesktop
 		
 		Do While intWindowHeight > intScreenHeight
 		    intScale = CInt(MobiDevice("name:=*").GetROProperty("viewerscale"))
+		    
+		    'Exit if scale if 25%
+		    If intScale = 25 Then
+		    	Print "The current viewer scale is: " & intScale
+		    	Exit Do
+		    End If
 		    intSetScale = Abs(CInt(intScale - intScaleDown))
 		    'Scale down to 25% at most
 		    If intSetScale >= 25 Then
@@ -829,6 +850,7 @@ Function FitViewerIntoDesktop
 		    If intWindowHeight <= 600 Then
 		        Exit Do
 		    ElseIf Minute(Now() - intStartTime) >= 2 Then
+		    	FitViewerIntoDesktop = False
 		    	Print "[WARNING] Failed to scale down the device. The current viewer scale is: " & intScale
 		    	Exit Do
 		    End If
