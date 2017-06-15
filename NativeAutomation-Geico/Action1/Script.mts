@@ -13,10 +13,10 @@ RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.33"
+HubAddress = "10.10.0.32"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "Device4"
+DeviceID = "iPadAir2"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -94,9 +94,9 @@ End If
 'Install Geico app
 Select Case strOS
 	Case "iphone os"
-		appName = "Geico"
+		appName = "GEICO Mobile"
 	Case "ios"
-		appName = "Geico"
+		appName = "GEICO Mobile"
 	Case "androidos"
 		appName = "GEICO Mobile_Obfuscated"
 '	Case "android"
@@ -133,7 +133,7 @@ Select Case strOS
 	Case "ios"
 		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "visible", True, 5000
 		MobiDevice("iOS").MobiElement("WiFi").Click
-		MobiDevice("iOS").MobiElement("WiFi").WaitProperty "width", 0, 5000
+		MobiDevice("iOS").MobiList("SettingsListRight").MobiElement("Wi-Fi").WaitProperty "width", micGreaterThan(0), 5000
 		MobiDevice("iOS").MobiElement("MobileLabs").Click
 		Wait 3
 		If MobiDevice("iOS").MobiButton("WiFi").Exist(3) Then
@@ -277,50 +277,52 @@ End If
 'Launch App and browse through some screens
 Select Case strOS
 	Case "ios"
-		Print "Checking if app is verified or not!"
-	
-		'First verify the app
-		openDeviceSettings
-		
-		'Tap General
-		If Not(MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Exist(5)) Then
-			MobiDevice("deviceControl").Swipe eDOWN, eMEDIUM, 30, 50
-		End If
-		
-		MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Click
-
-		'Scroll to the bottom of General screen and click Device Management
-		MobiDevice("iOS").MobiElement("GeneralTitle").WaitProperty "visible", True, 5000
-
-		If LCase(MobiDevice("iOS").GetROProperty("devicetype")) = "ipad" Then
-			MobiDevice("iOS").MobiList("SettingsListRight").Scroll eBOTTOM
-		Else
-			MobiDevice("iOS").MobiList("SettingsList").Scroll eBOTTOM
-		End If	
-		Wait 3
-		
-'		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
-		MobiDevice("iOS").MobiElement("DeviceManagement").Click
-		
-		'Select Cert and Trust it
-		If MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Exist(5) Then
-			MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Click
-			
-			If MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Exist(5) Then
-				MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Click
-				
-				If MobiDevice("iOS").MobiButton("Trust").Exist(5) Then
-					MobiDevice("iOS").MobiButton("Trust").Click
-					Print "Certificate trusted!"
-					
-					'Goto Home
-					MobiDevice("iOS").ButtonPress eHOME
-					Wait 2
-				End If
-				
-			End If
-			Print "App verified!"
-		End If
+'		Print "Checking if app is verified or not!"
+'	
+'		'First verify the app
+'		openDeviceSettings
+'		
+'		'Tap General
+'		If Not(MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Exist(5)) Then
+'			MobiDevice("deviceControl").Swipe eDOWN, eMEDIUM, 30, 50
+'		End If
+'		
+'		MobiDevice("iOS").MobiList("SettingsList").MobiElement("GeneralListItem").Click
+'
+'		'Scroll to the bottom of General screen and click Device Management
+'		MobiDevice("iOS").MobiElement("GeneralTitle").WaitProperty "visible", True, 5000
+'
+'		If LCase(MobiDevice("iOS").GetROProperty("devicetype")) = "ipad" Then
+'			MobiDevice("iOS").MobiList("SettingsListRight").Scroll eBOTTOM
+'		Else
+'			MobiDevice("iOS").MobiList("SettingsList").Scroll eBOTTOM
+'		End If	
+'		Wait 3
+'		
+''		MobiDevice("iOS").MobiElement("DeviceManagement").highlight
+'		If MobiDevice("iOS").MobiElement("DeviceManagement").Exist(2) Then
+'			MobiDevice("iOS").MobiElement("DeviceManagement").Click
+'		End If
+'		
+'		'Select Cert and Trust it
+'		If MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Exist(5) Then
+'			MobiDevice("iOS").MobiElement("GovernmentEmployeesInsuranceCo").Click
+'			
+'			If MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Exist(5) Then
+'				MobiDevice("iOS").MobiElement("TrustGovernmentEmployeesInsura").Click
+'				
+'				If MobiDevice("iOS").MobiButton("Trust").Exist(5) Then
+'					MobiDevice("iOS").MobiButton("Trust").Click
+'					Print "Certificate trusted!"
+'					
+'					'Goto Home
+'					MobiDevice("iOS").ButtonPress eHOME
+'					Wait 2
+'				End If
+'				
+'			End If
+'			Print "App verified!"
+'		End If
 	
 		'Open the search screen by swiping down on home screen
 		Print "Launching Geico app!"
@@ -330,9 +332,9 @@ Select Case strOS
 		MobiDevice("iOS").MobiEdit("Search").WaitProperty "visible", True, 50000
 		MobiDevice("iOS").MobiEdit("Search").Clear
 		If MobiDevice("iOS").MobiEdit("Search").Exist(5) Then
-			MobiDevice("iOS").MobiEdit("Search").Set "G4"
-			MobiDevice("iOS").MobiElement("G475776").WaitProperty "visible", True, 5000
-			MobiDevice("iOS").MobiElement("G475776").Click
+			MobiDevice("iOS").MobiEdit("Search").Set "Geico"
+			MobiDevice("iOS").MobiElement("GEICO Mobile").WaitProperty "visible", True, 5000
+			MobiDevice("iOS").MobiElement("GEICO Mobile").Click
 		Else
 			Print "Search screen not opened, exiting Test!"
 			ExitTest
@@ -345,6 +347,10 @@ Select Case strOS
 				MobiDevice("iOS").MobiButton("Allow").Click
 			End If
 			Wait 2
+		End If
+		
+		If MobiDevice("iOS").MobiButton("Back").Exist(2) Then
+			goToHomeScreen
 		End If
 		
 		startTime = Timer
@@ -486,9 +492,9 @@ Select Case strCase
 		
 		If objImage.Exist(5) Then
 			objImage.Highlight
-			MobiDevice("GEICO Mobile").MobiButton("GETAQUOTE").Click
+			MobiDevice("GEICO Mobile").MobiElement("GETAQUOTE").Click
 			Wait 5
-			MobiDevice("GEICO Mobile").MobiElement("AutoInsurance").Click
+			MobiDevice("GEICO Mobile").MobiElement("Auto").Click
 			Wait 5
 			
 			Select Case strOS
@@ -507,8 +513,8 @@ Select Case strCase
 			End If
 			
 			'Go to Signup screen
-			MobiDevice("GEICO Mobile").MobiButton("SIGNUPFORANACCOUNT").Click
-			
+			MobiDevice("GEICO Mobile").MobiElement("SIGNUP").Click
+
 			Select Case strOS
 			Case "ios"
 				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("PolicyNum_iOS").Set "007007"
@@ -689,7 +695,7 @@ Sub openDeviceSettings
 				blnFound = True
 			Else
 				MobiDevice("deviceControl").ButtonPress eHOME
-				Wait 10
+				Wait 5
 				intX = objSettingsIcon.GetROProperty("x")
 				Wait 5
 				intDeviceWidth = CInt(MobiDevice("deviceControl").GetROProperty("width") - 50)
