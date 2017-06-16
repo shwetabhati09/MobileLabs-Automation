@@ -227,7 +227,8 @@ If strOS = "android" Then
 	
 	intTries = 0
 	Do While Not(MobiDevice("deviceControl").MobiElement("Apps").Exist(2))
-		MobiDevice("deviceControl").Swipe eDOWN, eMEDIUM, 30, 60
+'		MobiDevice("deviceControl").Swipe eDOWN, eMEDIUM, 30, 60
+		MobiDevice("deviceControl").Draw "down(20%,50%) move(20%,30%,duration=1s) up()"
 		Wait 3
 		intTries = intTries + 1
 		If intTries > 5 Then
@@ -334,6 +335,7 @@ Select Case strOS
 		If MobiDevice("iOS").MobiEdit("Search").Exist(5) Then
 			MobiDevice("iOS").MobiEdit("Search").Set "Geico"
 			MobiDevice("iOS").MobiElement("GEICO Mobile").WaitProperty "visible", True, 5000
+			Wait 1
 			MobiDevice("iOS").MobiElement("GEICO Mobile").Click
 		Else
 			Print "Search screen not opened, exiting Test!"
