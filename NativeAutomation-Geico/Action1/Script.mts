@@ -16,7 +16,7 @@ CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
 HubAddress = "10.10.0.32"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "iPadAir2"
+DeviceID = "samsung_0215fa4a201ca9d9"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -75,6 +75,8 @@ If strOS = "ios" Or strOS = "iphone os" Then
 	If MobiDevice("iOS").MobiElement("SoftwareUpdate").Exist(10) Then
 		If MobiDevice("iOS").MobiButton("Later").Exist(5) Then
 			MobiDevice("iOS").MobiButton("Later").Click
+		ElseIf MobiDevice("iOS").MobiButton("Close").Exist(5) Then
+			MobiDevice("iOS").MobiButton("Close").Click
 		End If
 		Wait 2
 		If MobiDevice("iOS").MobiButton("RemindMeLater").Exist(5) Then
@@ -494,10 +496,19 @@ Select Case strCase
 		
 		If objImage.Exist(5) Then
 			objImage.Highlight
-			MobiDevice("GEICO Mobile").MobiElement("GETAQUOTE").Click
-			Wait 5
-			MobiDevice("GEICO Mobile").MobiElement("Auto").Click
-			Wait 5
+			If MobiDevice("GEICO Mobile").MobiElement("GETAQUOTE").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiElement("GETAQUOTE").Click
+			ElseIf MobiDevice("GEICO Mobile").MobiButton("GETAQUOTE").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiButton("GETAQUOTE").Click
+			End If
+			
+			If MobiDevice("GEICO Mobile").MobiElement("Auto").Exist(3) Then
+				MobiDevice("GEICO Mobile").MobiElement("Auto").Click
+			ElseIf MobiDevice("GEICO Mobile").MobiElement("AutoInsurance").Exist(3) Then
+				MobiDevice("GEICO Mobile").MobiElement("AutoInsurance").Click
+			End If
+			
+			Wait 2
 			
 			Select Case strOS
 				Case "ios"
@@ -515,7 +526,11 @@ Select Case strCase
 			End If
 			
 			'Go to Signup screen
-			MobiDevice("GEICO Mobile").MobiElement("SIGNUP").Click
+			If MobiDevice("GEICO Mobile").MobiButton("SIGNUPFORANACCOUNT").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiButton("SIGNUPFORANACCOUNT").Click
+			ElseIf MobiDevice("GEICO Mobile").MobiElement("SIGNUP").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiElement("SIGNUP").Click
+			End If
 
 			Select Case strOS
 			Case "ios"
@@ -548,8 +563,8 @@ Select Case strCase
 				If Not(MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Exist(2)) Then
 					MobiDevice("GEICO Mobile").Draw "down(50%,40%) move(50%,20%) up()"
 					Wait 1
-					MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Set "30091"
 				End If
+				MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("ZipCode").Set "30091"
 				
 			End Select
 			
@@ -627,7 +642,7 @@ Sub selectMonth
 
 	For i = 0 To UBound(arrMonths)
 		MobiDevice("GEICO Mobile").MobiElement("Element").MobiDropdown("Month").Click
-		Wait 2
+		Wait 3
 		
 		strMonthToSelect = arrMonths(i)
 		intMonthToSelect = Month(DateValue("22-" & strMonthToSelect & "-2000"))
