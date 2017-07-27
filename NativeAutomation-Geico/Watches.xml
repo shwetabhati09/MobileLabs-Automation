@@ -1,4 +1,3 @@
 ﻿<Properties>
-  <WatchEntry0 value="MobiElement(&quot;accessibilitylabel:=Settings&quot;).Getroproperty(&quot;width&quot;)" />
-  <WatchEntry1 value="objTest.getroproperty(&quot;y&quot;)" />
+  <WatchEntry0 value="strOS" />
 </Properties>

@@ -13,10 +13,10 @@ RegisterUserFunc "MobiButton", "Click", "ClickHighlight"
 
 'Provide device connection params here
 CLIPath = "C:\Users\Naveen\Desktop\dC_CLIMaster"
-HubAddress = "10.10.0.32"
+HubAddress = "10.10.0.33"
 UserName = "naveen@mlabs.com"
 Pwd = "deviceconnect"
-DeviceID = "samsung_0215fa4a201ca9d9"
+DeviceID = "google_5A30000764"
 applicationname="deviceControl"
 orientation="Portrait"
 scale="100"
@@ -100,7 +100,7 @@ Select Case strOS
 	Case "ios"
 		appName = "GEICO Mobile"
 	Case "androidos"
-		appName = "GEICO Mobile_Obfuscated"
+		appName = "GEICO Mobile"
 '	Case "android"
 '		appName = "GEICO Mobile_Obfuscated"
 	Case Else
@@ -154,14 +154,19 @@ Select Case strOS
 		Wait 3
 		
 	Case "android"
+
 		Set objWifi = MobiDevice("deviceControl").MobiElement("WiFi")
+
 		intTries = 0
 		Do While Not(objWifi.Exist(2))
-			MobiDevice("deviceControl").Swipe eUP, eMEDIUM, 30, 60
+'			MobiDevice("deviceControl").Swipe eUP, eMEDIUM, 30, 60
+			MobiDevice("deviceControl").Draw "down(20%,30%) move(20%,50%,duration=1s) up()"
 			Wait 2
 			intTries = intTries + 1
 			If MobiDevice("deviceControl").MobiElement("Wi-Fi").Exist(2) Then
 				Set objWifi = MobiDevice("deviceControl").MobiElement("Wi-Fi")
+			ElseIf MobiDevice("deviceControl").MobiElement("WiFi_Pixel").Exist(3) Then
+				Set objWifi = MobiDevice("deviceControl").MobiElement("WiFi_Pixel")
 			End If
 			If intTries > 5 Then
 				Exit Do
@@ -240,6 +245,7 @@ If strOS = "android" Then
 	
 	If MobiDevice("deviceControl").MobiElement("Apps").Exist(1) Then
 		MobiDevice("deviceControl").MobiElement("Apps").Click
+		Wait 2
 		
 		'For Samsung models
 		If MobiDevice("deviceControl").MobiElement("Appmanager").Exist(5) Then
@@ -383,6 +389,7 @@ Select Case strOS
 		
 		MobiDevice("deviceControl").Type "Geico"
 		MobiDevice("deviceControl").MobiElement("GEICOMobile").WaitProperty "visible", True, 10000
+		Wait 2
 		
 		MobiDevice("deviceControl").MobiElement("GEICOMobile").Click
 		
@@ -427,7 +434,11 @@ Select Case strCase
 			MobiDevice("GEICO Mobile").MobiElement("Element").MobiEdit("Password").Set "Test123!@#"
 			
 			'Show password
-			MobiDevice("GEICO Mobile").MobiElement("Element").MobiSwitch("ShowPassword").Set eACTIVATE
+			If MobiDevice("GEICO Mobile").MobiElement("Element").MobiSwitch("ShowPassword").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiElement("Element").MobiSwitch("ShowPassword").Set eACTIVATE
+			ElseIf MobiDevice("GEICO Mobile").MobiButton("SHOW").Exist(2) Then
+				MobiDevice("GEICO Mobile").MobiButton("SHOW").Click
+			End If
 			
 			If Not(MobiDevice("GEICO Mobile").MobiElement("Element").MobiElement("AccidentAssistance").Exist(2)) Then
 				Print "Closing Keypad!"
@@ -502,18 +513,26 @@ Select Case strCase
 				MobiDevice("GEICO Mobile").MobiButton("GETAQUOTE").Click
 			End If
 			
-			If MobiDevice("GEICO Mobile").MobiElement("Auto").Exist(3) Then
-				MobiDevice("GEICO Mobile").MobiElement("Auto").Click
-			ElseIf MobiDevice("GEICO Mobile").MobiElement("AutoInsurance").Exist(3) Then
-				MobiDevice("GEICO Mobile").MobiElement("AutoInsurance").Click
-			End If
-			
+'			If MobiDevice("GEICO Mobile").MobiElement("Auto").Exist(3) Then
+'				MobiDevice("GEICO Mobile").MobiElement("Auto").Click
+'			ElseIf MobiDevice("GEICO Mobile").MobiElement("AutoAndroid").Exist(3) Then
+'				MobiDevice("GEICO Mobile").MobiElement("AutoAndroid").Click
+'			End If
+'			
 			Wait 2
 			
 			Select Case strOS
 				Case "ios"
+					If MobiDevice("GEICO Mobile").MobiElement("Auto").Exist(3) Then
+						MobiDevice("GEICO Mobile").MobiElement("Auto").Click
+					End If
+					Wait 2
 					Set objCarIcon = MobiDevice("GEICO Mobile").MobiImage("CarIcon_iOS")
 				Case "android"
+					If MobiDevice("GEICO Mobile").MobiElement("AutoAndroid").Exist(3) Then
+						MobiDevice("GEICO Mobile").MobiElement("AutoAndroid").Click
+					End If
+					Wait 2
 					Set objCarIcon = MobiDevice("GEICO Mobile").MobiElement("Element").MobiImage("CarIcon")
 			End Select
 			
@@ -682,6 +701,7 @@ Sub selectMonth
 		Wait 2
 		strSelectedMonth = MobiDevice("GEICO Mobile").MobiElement("Element").MobiDropdown("Month").MobiElement("MonthValue").GetROProperty("text")
 		Print "Passed in month was <" & strMonthToSelect & "> and selected month is <" & strSelectedMonth & ">"
+		Wait 2
 	Next
 End Sub
 
@@ -777,9 +797,9 @@ Sub openDeviceSettings
 				MobiDevice("deviceControl").MobiButton("NOTHANKS").Click
 			ElseIf MobiDevice("deviceControl").MobiButton("SKIP").Exist(5) Then
 				MobiDevice("deviceControl").MobiButton("SKIP").Click
+				Wait 3
 			End If
 			
-			Wait 4
 			MobiDevice("deviceControl").Type "settings"
 			MobiDevice("deviceControl").MobiElement("Settings").WaitProperty "visible", True, 10000
 			MobiDevice("deviceControl").MobiElement("Settings").Click
