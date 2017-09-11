@@ -1,11 +1,11 @@
 # TrustNativeautomationTests
 
-TODO: This project contains UFT scripts for nativeautomation via Trust. The scripts will are cross platform and run on both iOS and Android. iOS 9.3+ and Android 4.3+ are supported.
+TODO: This project contains UFT scripts for nativeautomation via Trust. The scripts are cross platform and run on both iOS and Android. iOS 9.3+ and Android 4.3+ are supported.
 
 ## Requirements
 
-* Recommended UFT 12 or later. As of this writing UFT 14 has issues with Trust so please don’t use it.
-* deviceConnect 7.4 with Trust and CLI downloaded from the server.
+* Recommended UFT 12 or later.
+* deviceConnect 7.4 or later with Trust and CLI downloaded from the server.
 
 ## Usage
 
